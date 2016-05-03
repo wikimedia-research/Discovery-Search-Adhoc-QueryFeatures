@@ -1,0 +1,2 @@
+# Investigate how search query features affect result sets
+Let's see if we can find any patterns in the relationship between the featuresa query has and the search results it yields. For example, if some features or combinations of features (e.g. presence of odd or even number of quotation marks) are more likely than others to yield zero results -- see [T128118](https://phabricator.wikimedia.org/T128118) for more details.
