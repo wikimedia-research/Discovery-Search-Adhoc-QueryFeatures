@@ -84,3 +84,56 @@ p <- temp %>%
 ggsave("zrr_by_feature_combo_sort-count.png", p, path = fig_path, units = "in", dpi = 150, height = 17, width = 13)
 # ggsave("zrr_by_feature_combo_sort-zrr.png", p, path = fig_path, units = "in", dpi = 150, height = 17, width = 13)
 rm(temp, p)
+
+# Let's take a look at high-profile users:
+most_active_identities <- queries[, j = list(requests = .N), by = "identity"] %>%
+  dplyr::top_n(6, requests)
+temp <- queries[queries$identity %in% most_active_identities$identity,
+        j = list(queries = .N),
+        by = c("identity", "n_terms", "zero_result") ] %>%
+  group_by(identity, zero_result) %>%
+  summarize(n_terms = n_terms, prop = queries/sum(queries)) %>%
+  ungroup %>%
+  dplyr::left_join(most_active_identities) %>%
+  mutate(zero_result = ifelse(zero_result == "TRUE",
+                              "Query Yielded Zero Results",
+                              "Query Yielded Some Results"),
+         identity = polloi::compress(requests, 2))
+temp %>%
+  ggplot(aes(x = n_terms, y = prop)) +
+  geom_bar(stat = "identity") +
+  facet_grid(identity~zero_result) +
+  scale_y_continuous("Proportion of Queries", labels = scales::percent_format(), limits = 0:1) +
+  scale_x_continuous("Number of Terms in Simple Query (All queries were simple queries.)",
+                     breaks = 1:20, labels = 1:20) +
+  geom_text(aes(label = sprintf("%.2f%%", 100*prop)), nudge_y = 0.3, angle = 270, family = "Gill Sans") +
+  ggthemes::theme_gdocs(base_family = "Gill Sans", base_size = 14) +
+  theme(panel.grid.major = element_line(color = "gray90")) +
+  ggtitle(paste("Most active users on", as.character(head(queries$date, 1), format = "%a (%d %b %Y)")),
+          subtitle = paste0("Showing top 6 users with ", min(temp$identity), "-", max(temp$identity), " ", tolower(fig_subtitle))) +
+  theme(panel.border = element_blank())
+rm(temp, most_active_identities)
+
+# Zero results rate by country
+p <- queries[, j = list(queries = .N), by = c("country", "zero_result")] %>%
+  mutate(zero_result = ifelse(zero_result, "Zero Results", "Some Results")) %>%
+  tidyr::spread(zero_result, queries, fill = 0) %>%
+  mutate(`Total Queries` = `Zero Results` + `Some Results`,
+         `Zero Results Rate` = `Zero Results`/`Total Queries`,
+         `Proportion of Searches` = `Total Queries`/sum(`Total Queries`)) %>%
+  dplyr::top_n(20, `Total Queries`) %>%
+  ggplot(aes(x = reorder(country, -`Proportion of Searches`), y = `Zero Results Rate`)) +
+  geom_bar(stat = "identity", aes(fill = `Proportion of Searches`)) +
+  scale_fill_gradient("Proportion of Searches Accounted For", low = "#ffeda0", high = "#f03b20",
+                      labels = scales::percent_format()) +
+  scale_x_discrete("Countries") +
+  scale_y_continuous(labels = scales::percent_format(), breaks = seq(0, 0.4, 0.05), limits = c(0, 0.5)) +
+  geom_text(aes(label = sprintf("%.1f%% of %s", 100*`Zero Results Rate`, polloi::compress(`Total Queries`, 1))),
+            nudge_y = 0.05) +
+  coord_flip() +
+  ggthemes::theme_tufte(base_family = "Gill Sans", base_size = 14) +
+  theme(legend.position = "bottom") +
+  ggtitle("Zero results rate in top 20 countries by volume of searches",
+          subtitle = paste(fig_subtitle, "on", as.character(head(queries$date, 1), format = "%a (%d %b %Y)")))
+ggsave("zrr_by_country.png", p, path = fig_path, units = "in", dpi = 150, height = 10, width = 10)
+rm(p)

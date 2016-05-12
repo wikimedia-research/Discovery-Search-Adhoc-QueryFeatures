@@ -31,3 +31,15 @@ if (file.exists(file.path(data_root, paste0("features-matrix_", dataset_to_use))
 }
 
 # dim(features_matrix) = 5,740,254 queries x 25 possible features
+
+## Regions might be easier to work with than countries...
+# data(list = c("UN_M.49_Countries", "UN_M.49_Regions"), package = "ISOcodes")
+# 
+# UN_M.49_Countries$Name[!(tolower(UN_M.49_Countries$Name) %in% tolower(unique(queries$country)))]
+# queries$country[queries$country == "United States"] <- "United States of America"
+# queries$country[queries$country == "United Kingdom"] <- "United Kingdom of Great Britain and Northern Ireland"
+# 
+# codes <- unlist(strsplit(keep_where(UN_M.49_Regions, Name == "Northern America")$Children, ", "))
+# tolower(keep_where(UN_M.49_Countries, Code %in% codes)$Name) %in% tolower(unique(queries$country))
+# 
+# rm(UN_M.49_Countries, UN_M.49_Regions)

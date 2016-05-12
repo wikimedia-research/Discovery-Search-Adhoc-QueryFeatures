@@ -1,4 +1,4 @@
-end_date <- Sys.Date()-1
+end_date <- as.Date("2016-05-01") # Sys.Date()-1
 start_date <- end_date - 0
 queries <- do.call(rbind, lapply(seq(start_date, end_date, "day"), function(date) {
   cat("Fetching query features from", as.character(date), "\n")
@@ -11,13 +11,13 @@ queries <- do.call(rbind, lapply(seq(start_date, end_date, "day"), function(date
                    CREATE TEMPORARY FUNCTION country_name as 'org.wikimedia.analytics.refinery.hive.CountryNameUDF';
                    USE wmf_raw;
                    SELECT
-                     source, identity, country, is_automata,
+                     source, identity, country_code, country_name(country_code) AS country, is_automata,
                      query_type, zero_result, n_terms, n_chars,
                      SIZE(SPLIT(features, ', ')) AS n_feats,
                      SUBSTR(features, 2, LENGTH(features)-2) AS features
                    FROM (
                      SELECT
-                       source, identity, country_name(geocode_country(ip)) AS country,
+                       source, identity, geocode_country(ip) AS country_code,
                        CASE
                          WHEN ((ua_parser(useragent)['device_family'] = 'Spider') OR
                                 is_spider(useragent) OR ip = '127.0.0.1')
@@ -44,15 +44,15 @@ queries <- do.call(rbind, lapply(seq(start_date, end_date, "day"), function(date
 queries$zero_result <- queries$zero_result == "true"
 
 library(data.table)
-queries <- as.data.table(queries, key = c("date", "source", "identity", "country", "is_automata", "query_type"))
+queries <- as.data.table(queries, key = c("date", "source", "identity", "country_code", "country", "is_automata", "query_type"))
 # queries[,j = list(queries = .N), by = c("date", "source", "is_automata")]
 
 dir.create("cirrus_query_features")
-readr::write_rds(queries, "~/cirrus_query_features/all.rds", "gz")
+readr::write_rds(queries[queries$source == "web" & !queries$is_automata,], "~/cirrus_query_features/web_excl-known-automata.rds", "gz")
 readr::write_rds(queries[queries$source == "api" & queries$is_automata,], "~/cirrus_query_features/api_known-automata.rds", "gz")
 readr::write_rds(queries[queries$source == "api" & !queries$is_automata,], "~/cirrus_query_features/api_excl-known-automata.rds", "gz")
 readr::write_rds(queries[queries$source == "web" & queries$is_automata,], "~/cirrus_query_features/web_known-automata.rds", "gz")
-readr::write_rds(queries[queries$source == "web" & !queries$is_automata,], "~/cirrus_query_features/web_excl-known-automata.rds", "gz")
+readr::write_rds(queries, "~/cirrus_query_features/all.rds", "gz")
 
 ## Locally:
 dir.create("data")
