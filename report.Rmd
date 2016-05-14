@@ -1,0 +1,43 @@
+---
+title: "From Zero to Hero"
+subtitle: "Predicting Zero Results From Query Features, Ignoring Content"
+author: "Mikhail Popov"
+date: "May 13, 2016"
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 7.5
+    includes:
+      in_header: header.tex
+    latex_engine: xelatex
+fontsize: 11pt
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+\renewcommand{\abstractname}{Executive Summary}
+\begin{abstract}
+...
+\end{abstract}
+
+## Introduction
+
+...
+
+## Methods
+
+On 24 February 2016 we completed a Hive user-defined function (UDF) for deconstructing search queries into various features (see Patch [254461](https://gerrit.wikimedia.org/r/#/c/254461/)). The UDF detects a variety of features such as: odd or even number of quotation marks, logical operators (e.g. AND, OR), "prefix:" or "insource:", and wildcards. For a full list of features, please see [T118218](https://phabricator.wikimedia.org/T118218) and [SearchQuery.java](https://git.wikimedia.org/blob/analytics%2Frefinery%2Fsource.git/master/refinery-core%2Fsrc%2Fmain%2Fjava%2Forg%2Fwikimedia%2Fanalytics%2Frefinery%2Fcore%2FSearchQuery.java) and [SearchQueryFeatureRegex.java](https://git.wikimedia.org/blob/analytics%2Frefinery%2Fsource.git/master/refinery-core%2Fsrc%2Fmain%2Fjava%2Forg%2Fwikimedia%2Fanalytics%2Frefinery%2Fcore%2FSearchQueryFeatureRegex.java) source code.
+
+We extracted 5.7 million queries
+
+Additionally, 
+
+## Results
+
+## Conclusion and Discussion
+
+## References

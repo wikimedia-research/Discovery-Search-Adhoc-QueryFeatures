@@ -1,4 +1,3 @@
-dataset_to_use <- "web_excl-known-automata.rds"
 switch(dataset_to_use,
        "api_known-automata.rds" = {
          fig_path <- "figures/api/known_automata"

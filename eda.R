@@ -9,6 +9,7 @@ if (!"subtitle" %in% names(formals(ggplot2::ggtitle))) {
 library(ggplot2)
 library(cowplot)
 
+dataset_to_use <- "web_excl-known-automata.rds"
 source("config.R")
 queries <- readr::read_rds(file.path(data_root, dataset_to_use))
 source("refine.R") # yields: features_matrix
