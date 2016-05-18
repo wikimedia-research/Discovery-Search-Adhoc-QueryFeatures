@@ -16,7 +16,7 @@ standardize <- function(x) { return((x - mean(x))/sd(x)) }
 
 set.seed(20160512)
 
-n_train <- 100000
+n_train <- 0.1 * nrow(queries)
 n_validation <- n_train/10
 
 subset_idx <- sample.int(nrow(queries), size = n_train + n_validation, replace = FALSE)
@@ -54,6 +54,7 @@ p <- ggplot(confidence_intervals, aes(y = estimate, x = term, color = `increases
        title = "Logistic regression coefficients") +
   theme(legend.position = "bottom", panel.grid = element_line(color = "gray80"),
         panel.grid.major.y = element_line(color = "black", size = 0.1))
+print(p)
 ggsave("logit_coef.png", p, path = fig_path, units = "in", dpi = 150, height = 6, width = 8)
 
 library(caret)

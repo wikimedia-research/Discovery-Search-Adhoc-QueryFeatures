@@ -50,13 +50,22 @@ p <- temp %>%
   tidyr::spread(zero_result, queries, fill = 0) %>%
   group_by(feature) %>%
   mutate(Total = Zero + Some, ZRR = Zero/Total) %>%
-  ggplot(aes(x = feature, y = ZRR)) +
+  ggplot(aes(x = reorder(feature, -ZRR), y = ZRR, fill = log10(Total))) +
   geom_bar(stat = "identity") +
-  scale_y_continuous(labels = scales::percent_format(), breaks = seq(0, 1, 0.1), limits = c(0, 1.2)) +
+  scale_x_discrete("Feature") +
+  scale_y_continuous("Zero Results Rate",
+                     labels = scales::percent_format(),
+                     breaks = seq(0, 1, 0.1),
+                     limits = c(0, 1.2)) +
+  scale_fill_gradient("Number of Queries", low = "#ffeda0", high = "#f03b20",
+                      breaks = 1:7, labels = polloi::compress(10^(1:7)),
+                      guide = guide_legend(keyheight = 1, heywidth = 3, nrow = 1)) +
   geom_text(aes(label = sprintf("%.1f%% of %s", 100*ZRR, polloi::compress(Total, 1))), nudge_y = 0.11) +
   coord_flip() +
   ggthemes::theme_tufte(base_family = "Gill Sans", base_size = 14) +
-  ggtitle("Proportion of searches with zero results by query feature", subtitle = fig_subtitle)
+  ggtitle("Proportion of searches with zero results by query feature", subtitle = fig_subtitle) +
+  theme(legend.position = "bottom")
+print(p)
 ggsave("zrr_by_feature.png", p, path = fig_path, units = "in", dpi = 150, height = 10, width = 10)
 rm(temp, p)
 
@@ -67,8 +76,8 @@ temp <- queries[, j = list(queries = .N), by = c("zero_result", "features")] %>%
   mutate(`Total Queries` = `Zero Results` + `Some Results`, `Zero Results Rate` = `Zero Results`/`Total Queries`)
 p <- temp %>%
   keep_where(`Total Queries` > 100) %>%
-  ggplot(aes(x = reorder(features, -`Total Queries`), y = `Zero Results Rate`)) +
-  # ggplot(aes(x = reorder(features, -`Zero Results Rate`), y = `Zero Results Rate`)) +
+  # ggplot(aes(x = reorder(features, -`Total Queries`), y = `Zero Results Rate`)) +
+  ggplot(aes(x = reorder(features, -`Zero Results Rate`), y = `Zero Results Rate`)) +
   geom_bar(stat = "identity", aes(fill = log10(`Total Queries`))) +
   scale_fill_gradient("Number of Queries", low = "#ffeda0", high = "#f03b20",
                       breaks = 1:7, labels = polloi::compress(10^(1:7)),
@@ -80,10 +89,11 @@ p <- temp %>%
   coord_flip() +
   ggthemes::theme_tufte(base_family = "Gill Sans", base_size = 14) +
   theme(legend.position = "bottom") +
-  ggtitle("Proportion of searches with zero results by query features (sorted by # of queries)", subtitle = fig_subtitle)
-  # ggtitle("Proportion of searches with zero results by query features (sorted by ZRR)", subtitle = fig_subtitle)
-ggsave("zrr_by_feature_combo_sort-count.png", p, path = fig_path, units = "in", dpi = 150, height = 17, width = 13)
-# ggsave("zrr_by_feature_combo_sort-zrr.png", p, path = fig_path, units = "in", dpi = 150, height = 17, width = 13)
+  # ggtitle("Proportion of searches with zero results by query features (sorted by # of queries)", subtitle = fig_subtitle)
+  ggtitle("Proportion of searches with zero results by query features (sorted by ZRR)", subtitle = fig_subtitle)
+# ggsave("zrr_by_feature_combo_sort-count.png", p, path = fig_path, units = "in", dpi = 150, height = 17, width = 13)
+print(p)
+ggsave("zrr_by_feature_combo_sort-zrr.png", p, path = fig_path, units = "in", dpi = 150, height = 17, width = 13)
 rm(temp, p)
 
 # Let's take a look at high-profile users:
@@ -123,7 +133,7 @@ p <- queries[, j = list(queries = .N), by = c("country", "zero_result")] %>%
          `Zero Results Rate` = `Zero Results`/`Total Queries`,
          `Proportion of Searches` = `Total Queries`/sum(`Total Queries`)) %>%
   dplyr::top_n(20, `Total Queries`) %>%
-  ggplot(aes(x = reorder(country, -`Proportion of Searches`), y = `Zero Results Rate`)) +
+  ggplot(aes(x = reorder(country, -`Zero Results Rate`), y = `Zero Results Rate`)) +
   geom_bar(stat = "identity", aes(fill = `Proportion of Searches`)) +
   scale_fill_gradient("Proportion of Searches Accounted For", low = "#ffeda0", high = "#f03b20",
                       labels = scales::percent_format()) +
@@ -136,5 +146,6 @@ p <- queries[, j = list(queries = .N), by = c("country", "zero_result")] %>%
   theme(legend.position = "bottom") +
   ggtitle("Zero results rate in top 20 countries by volume of searches",
           subtitle = paste(fig_subtitle, "on", as.character(head(queries$date, 1), format = "%a (%d %b %Y)")))
+print(p)
 ggsave("zrr_by_country.png", p, path = fig_path, units = "in", dpi = 150, height = 10, width = 10)
 rm(p)
