@@ -58,9 +58,12 @@ print(p)
 ggsave("logit_coef.png", p, path = fig_path, units = "in", dpi = 150, height = 6, width = 8)
 
 library(caret)
-confusionMatrix(factor(predictions > 0.5, c(FALSE, TRUE), c("some results", "zero results")),
-                factor(temp[validation_idx, 1], 0:1, c("some results", "zero results")),
-                positive = "zero results")
+x <- confusionMatrix(data = factor(predictions > 0.5, c(FALSE, TRUE), c("some results", "zero results")),
+                     reference = factor(temp[validation_idx, 1], 0:1, c("some results", "zero results")),
+                     positive = "zero results")
+
+table(actual = factor(temp[validation_idx, 1], 0:1, c("some results", "zero results")),
+      predicted = factor(predictions > 0.5, c(FALSE, TRUE), c("some results", "zero results")))[2:1, 2:1]
 
 logistic_regression %>%
   broom::tidy() %>%

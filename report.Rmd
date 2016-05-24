@@ -3,7 +3,8 @@ title: "From Zero to Hero"
 subtitle: "Anticipating Zero Results From Query Features, Ignoring Content"
 author:
 - Mikhail Popov (Analysis & Report)
-date: "May 17, 2016"
+- Trey Jones (Review)
+date: "May 24, 2016"
 output:
   pdf_document:
     fig_caption: yes
@@ -25,6 +26,8 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 The Discovery Department uses the zero results rate -- the proportion of searches that yield zero results -- to measure the performance of our search system. However, little is known about possible patterns that affect the quantity (and quality) of results our users see. In this report, we use random forest and logistic regression models to shed light on the types of queries that tend to yield zero results.
 
 Namely, we found that whether the query has an even number of double quotes is one of the most important indicators of whether it will yield zero results. Other notable features that impact the quantity of results include: whether the query is only punctuation and spaces, whether it ends with ?, and whether it has logical operators. For a full list of features and their importance and impact, please see Figures 4 and 5.
+
+Going forward, we may want to rewrite queries to not have quotes when the original query (with double quotation marks) yielded 0 results. We may also want to address question queries (that end with ?).
 \end{abstract}
 
 ## Introduction
@@ -84,7 +87,9 @@ R Core Team (2016). R: A language and environment for statistical computing. R F
 \label{fig:var_imp}
 \end{figure}
 
-In Figure \ref{fig:var_imp} above, we can see that across the battery of variable importance metrics, having an even number of double quotes is 1 of the 2 most important indicators of whether the query will have some or zero results. This makes sense because the engine will look for exact matches to each quoted segment of the query, meaning less documents will be retrieved. Other high-importance features make a lot of logical sense, such as whether the query includes the OR operator or whether it's only punctuation and spaces.
+In Figure \ref{fig:var_imp} above, we can see that across the battery of variable importance metrics, having an even number of double quotes is 1 of the 2 most important indicators of whether the query will have some or zero results. This makes sense because the engine will look for exact matches to each quoted segment of the query, meaning fewer documents will be retrieved. Other high-importance features make a lot of logical sense, such as whether the query includes the OR operator or whether it's only punctuation and spaces.
+
+Some features that are in the dataset but are not in Figure \ref{fig:var_imp} because they were not selected in any splits while the decisions trees were grown in the random forest.
 
 \end{landscape}
 
@@ -96,7 +101,7 @@ In Figure \ref{fig:var_imp} above, we can see that across the battery of variabl
 
 The two models reveal a similar set of high-impact features, namely:
 
-- Queries with an even number of " marks
+- Queries with an even number of \textquotedbl~marks
 - Queries that are just punctuation and spaces (obvious)
 - Queries with wildcards (less obvious)
 - Queries that end with ?
@@ -112,7 +117,7 @@ In Figure \ref{fig:mda_coef} below, we can see which features the two models agr
 \begin{figure}[h!]
 \centering
 \includegraphics{figures/web/excl_known_automata/mda_logitcoef.png}
-\caption{A scatter map of features with respect to variable importance (via relative mean decrease metrics) and logistic regression coefficient estimates. The plot is divided into quadrants according to how important or unimportant the feature is in random forest classification and whether a query having the feature is more or less likely to yield zero results.}
+\caption{A scatter map of features with respect to variable importance (via relative mean decrease metrics) and logistic regression coefficient estimates. Each of the 4 plots is divided into quadrants according to how important or unimportant the feature is in random forest classification and whether a query having the feature is more or less likely to yield zero results.}
 \label{fig:mda_coef}
 \end{figure}
 

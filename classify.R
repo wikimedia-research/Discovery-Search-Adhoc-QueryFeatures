@@ -114,10 +114,10 @@ rf <- randomForest(x = temp[training_idx, -1], xtest = temp[test_idx, -1],
 # MDSplot(rf, fac = factor(temp[test_idx, 1], 0:1, c("some results", "zero results")))
 
 load("random_forest.RData")
-
+import::from(dplyr, keep_where = filter)
 variable_importance <- data.frame(Variable = rownames(importance(rf)), importance(rf)) %>%
   set_rownames(NULL)
-p1 <- ggplot(data = variable_importance,
+p1 <- ggplot(data = keep_where(variable_importance, abs(zero.results) > 1),
              aes(x = reorder(Variable, -zero.results),
                  y = zero.results)) +
   geom_bar(stat = "identity", aes(fill = ifelse(zero.results >= 0, "Higher", "Lower"))) +
@@ -129,7 +129,7 @@ p1 <- ggplot(data = variable_importance,
   labs(x = "Variable", y = "Mean Importance", subtitle = fig_subtitle,
        title = "(a) Importance of features in predicting zero results.") +
   theme(legend.position = "bottom")
-p2 <- ggplot(data = variable_importance,
+p2 <- ggplot(data = keep_where(variable_importance, abs(MeanDecreaseGini) > 1),
              aes(x = reorder(Variable, -MeanDecreaseGini),
                  y = MeanDecreaseGini/max(MeanDecreaseGini))) +
   geom_bar(stat = "identity") +
@@ -138,7 +138,7 @@ p2 <- ggplot(data = variable_importance,
   labs(x = "Variable", y = "Mean Decrease Gini (Relative to Max)",
        subtitle = fig_subtitle,
        title = "(b) Importance of features in partitioning.")
-p3 <- ggplot(data = variable_importance,
+p3 <- ggplot(data = keep_where(variable_importance, abs(MeanDecreaseAccuracy) > 1),
              aes(x = reorder(Variable, -MeanDecreaseAccuracy),
                  y = MeanDecreaseAccuracy/max(MeanDecreaseAccuracy))) +
   geom_bar(stat = "identity") +
@@ -147,7 +147,7 @@ p3 <- ggplot(data = variable_importance,
   ggthemes::theme_tufte(base_family = "Gill Sans", base_size = 16) +
   labs(x = "Variable", y = "Mean Decrease in Accuracy (Relative to Max)",
        subtitle = fig_subtitle,
-       title = "(c) Importance of features in quality of classification.") +
+       title = "(c) Importance of features in accuracy.") +
   theme(legend.position = "bottom")
 p <- plot_grid(p1, p2, p3, nrow = 1)
 print(p)
